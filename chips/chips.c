@@ -3,8 +3,6 @@
 
 #include "chips.h"
 
-
-
 #ifdef CONFIG_ET2_SUPPORT_ESP32C2
 et2_chip_t const et2_chip_esp32c2 = {
     .stub        = &stub_esp32c2,
@@ -27,6 +25,13 @@ et2_chip_t const et2_chip_esp32c3 = {
 
 #ifdef CONFIG_ET2_SUPPORT_ESP32C6
 et2_chip_t const et2_chip_esp32c6 = {
+    .stub        = &stub_esp32c6,
+    .flash_enc   = true,
+    .ram_block   = DEFAULT_RAM_BLOCK,
+    .flash_block = DEFAULT_FLASH_BLOCK,
+    .status_len  = 4,
+};
+et2_chip_t const et2_chip_esp32c6_stub = {
     .stub        = &stub_esp32c6,
     .flash_enc   = true,
     .ram_block   = DEFAULT_RAM_BLOCK,

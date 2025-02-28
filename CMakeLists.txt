@@ -21,6 +21,8 @@ endif()
 idf_component_register(
     SRCS
         src/esptoolsquared.c
+        src/et2_uart.c
+        src/et2_slip.c
         chips/chips.c
         ${flashstubs}
     INCLUDE_DIRS

@@ -1,6 +1,6 @@
 // WARNING: This is a generated file, do not edit it!
 // clang-format off
-// Generated from esp-idf-tools/python_env/idf5.3_py3.12_env/lib/python3.12/site-packages/esptool/targets/stub_flasher/stub_flasher_32c6.json
+// Generated from c6.json
 
 #include "chips.h"
 

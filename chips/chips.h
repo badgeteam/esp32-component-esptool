@@ -3,17 +3,16 @@
 
 #pragma once
 
+#include <sdkconfig.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include <sdkconfig.h>
-
 typedef struct {
-    uint8_t const *text;
+    uint8_t const* text;
     size_t         text_len;
     size_t         text_start;
-    uint8_t const *data;
+    uint8_t const* data;
     size_t         data_len;
     size_t         data_start;
     size_t         bss_start;
@@ -22,7 +21,7 @@ typedef struct {
 
 typedef struct {
     // Flasher stub.
-    et2_stub_t const *stub;
+    et2_stub_t const* stub;
     // Chip supports FLASH encryption.
     bool              flash_enc;
     // Maximum block size for RAM.
@@ -35,8 +34,6 @@ typedef struct {
 
 #define DEFAULT_RAM_BLOCK   0x1800
 #define DEFAULT_FLASH_BLOCK 0x4000
-
-
 
 #ifdef CONFIG_ET2_SUPPORT_ESP32C2
 extern et2_stub_t const stub_esp32c2;
@@ -51,6 +48,7 @@ extern et2_chip_t const et2_chip_esp32c3;
 #ifdef CONFIG_ET2_SUPPORT_ESP32C6
 extern et2_stub_t const stub_esp32c6;
 extern et2_chip_t const et2_chip_esp32c6;
+extern et2_chip_t const et2_chip_esp32c6_stub;
 #endif
 
 #ifdef CONFIG_ET2_SUPPORT_ESP32P4
