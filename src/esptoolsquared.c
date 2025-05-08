@@ -57,37 +57,6 @@ static uint32_t et2_checksum(const uint8_t* data, uint32_t data_length, uint32_t
     return state;
 }
 
-void et2_test(void) {
-    uint32_t chip_id;
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
-    ESP_ERROR_CHECK(et2_detect(&chip_id));
-    ESP_LOGI(TAG, "ESP32 detected; chip id 0x%08" PRIx32, chip_id);
-
-    ESP_ERROR_CHECK(et2_run_stub());
-
-    // Send FLASH_BEGIN command to initiate memory writes
-    uint8_t* dummy_data = malloc(4096);
-
-    for (int i = 0; i < 4096; i++) dummy_data[i] = i;
-
-    ESP_ERROR_CHECK(et2_cmd_flash_begin(4096 * 4, 0));
-    ESP_ERROR_CHECK(et2_cmd_flash_data(dummy_data, 4096, 0));
-    ESP_ERROR_CHECK(et2_cmd_flash_data(dummy_data, 4096, 1));
-    ESP_ERROR_CHECK(et2_cmd_flash_data(dummy_data, 4096, 2));
-    ESP_ERROR_CHECK(et2_cmd_flash_data(dummy_data, 4096, 3));
-    ESP_ERROR_CHECK(et2_cmd_flash_finish(false));
-
-    uint32_t length = 4 * 1024;
-    uint8_t* buffer = malloc(length);
-    ESP_ERROR_CHECK(et2_cmd_read_flash(0, length, buffer));
-
-    printf("DATA READ FROM FLASH:\r\n");
-    for (size_t i = 0; i < length; i++) {
-        printf("%02x", buffer[i]);
-    }
-    printf("\r\n");
-}
-
 esp_err_t et2_read_magic_reg(uint32_t* out_magic) {
     return et2_cmd_read_reg(0x40001000, out_magic);
 }
@@ -528,4 +497,37 @@ esp_err_t et2_cmd_flash_data(const uint8_t* data, uint32_t data_len, uint32_t se
 esp_err_t et2_cmd_flash_finish(bool reboot) {
     uint32_t params[] = {reboot ? 0 : 1};
     return et2_send_cmd_check(ET2_CMD_FLASH_END, 0, params, sizeof(params), NULL, NULL, NULL, NULL, NULL, 0);
+}
+
+// Write compressed data to flash
+
+esp_err_t et2_cmd_deflate_begin(uint32_t uncompressed_size, uint32_t compressed_size, uint32_t offset) {
+    uint32_t num_blocks = (compressed_size + FLASH_WRITE_SIZE - 1) / FLASH_WRITE_SIZE;
+    uint32_t erase_size = uncompressed_size;
+    uint32_t params[]   = {erase_size, num_blocks, FLASH_WRITE_SIZE, offset};
+    return et2_send_cmd_check(ET2_CMD_DEFL_BEGIN, 0, params, sizeof(params), NULL, NULL, NULL, NULL, NULL, 0);
+}
+
+esp_err_t et2_cmd_deflate_data(const uint8_t* data, uint32_t data_len, uint32_t seq) {
+    uint32_t params[] = {data_len, seq, 0, 0};
+    ESP_RETURN_ON_ERROR(
+        et2_send_cmd_check(ET2_CMD_DEFL_DATA, 0, params, sizeof(params), NULL, NULL, NULL, NULL, data, data_len), TAG,
+        "Failed to write to flash");
+    return ESP_OK;
+}
+
+esp_err_t et2_cmd_deflate_finish(bool reboot) {
+    uint32_t params[] = {reboot ? 0 : 1};
+    return et2_send_cmd_check(ET2_CMD_DEFL_END, 0, params, sizeof(params), NULL, NULL, NULL, NULL, NULL, 0);
+}
+
+// Erase entire flash
+esp_err_t et2_cmd_erase_flash(void) {
+    return et2_send_cmd_check(ET2_CMD_ERASE_FLASH, 0, NULL, 0, NULL, NULL, NULL, NULL, NULL, 0);
+}
+
+// Erase a region of flash
+esp_err_t et2_cmd_erase_region(uint32_t offset, uint32_t length) {
+    uint32_t params[] = {offset, length};
+    return et2_send_cmd_check(ET2_CMD_ERASE_REGION, 0, params, sizeof(params), NULL, NULL, NULL, NULL, NULL, 0);
 }
